@@ -8,6 +8,12 @@ import { AppointmentModule } from './appointment/appointment.module';
 import { ClinicModule } from './clinic/clinic.module';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UsersModule } from './users/users.module';
+import { Patient } from './patient/entities/patient.entity';
+import { Professional } from './professional/entities/professional.entity';
+import { Appointment } from './appointment/entities/appointment.entity';
+import { Clinic } from './clinic/entities/clinic.entity';
+import { User } from './users/entities/user.entity';
 
 const databasePort = process.env.DB_PORT as unknown as number | undefined;
 
@@ -21,12 +27,14 @@ const databasePort = process.env.DB_PORT as unknown as number | undefined;
       username: process.env.DB_USER,
       password: process.env.DB_PASS,
       database: process.env.DB_NAME,
+      entities: [Patient, Professional, Appointment, Clinic, User],
     }),
     AuthModule,
     ProfessionalModule,
     PatientModule,
     AppointmentModule,
     ClinicModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
