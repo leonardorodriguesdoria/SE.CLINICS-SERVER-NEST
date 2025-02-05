@@ -1,26 +1,38 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { ConflictException, Injectable } from '@nestjs/common';
+import { CreateUserAuthDTO } from './dto/create-auth.dto';
+import { Repository } from 'typeorm';
+import { User } from 'src/users/entities/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { hashPassword } from 'src/utils/hashPassword';
 
 @Injectable()
 export class AuthService {
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
-  }
+  constructor(
+    @InjectRepository(User) private userRepository: Repository<User>,
+  ) {}
 
-  findAll() {
-    return `This action returns all auth`;
-  }
+  //Register User
+  async registerUser(createAuthDto: CreateUserAuthDTO): Promise<User> {
+    const { name, email, password, role } = createAuthDto;
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
+    let patientAlreadyExists = await this.userRepository.findOne({
+      where: { email },
+    });
+    if (patientAlreadyExists) {
+      throw new ConflictException(
+        'Já existe um usuário com esse e-mail. Por favor, informe outro e-mail',
+      );
+    }
+    let hashedPassword = await hashPassword(password);
+    let newPatient = this.userRepository.create({
+      name,
+      email,
+      password: hashedPassword,
+      role,
+    });
 
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
+    await this.userRepository.save(newPatient);
 
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+    return newPatient;
   }
 }
