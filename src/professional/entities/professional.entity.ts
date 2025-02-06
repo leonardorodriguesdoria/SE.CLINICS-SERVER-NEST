@@ -1,5 +1,4 @@
 import { Appointment } from 'src/appointment/entities/appointment.entity';
-import { Clinic } from 'src/clinic/entities/clinic.entity';
 import { User } from 'src/users/entities/user.entity';
 import {
   Column,
@@ -19,8 +18,8 @@ export class Professional {
   @Column()
   specialization: string;
 
-  @ManyToMany(() => Clinic, (clinic) => clinic.professionals)
-  clinics: Clinic[];
+  @Column('json')
+  clinics: string[];
 
   @OneToOne(() => User)
   @JoinColumn()

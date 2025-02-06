@@ -28,7 +28,7 @@ const databasePort = process.env.DB_PORT as unknown as number | undefined;
       password: process.env.DB_PASS,
       database: process.env.DB_NAME,
       entities: [Patient, Professional, Appointment, Clinic, User],
-      synchronize: false,
+      synchronize: true,
     }),
     AuthModule,
     ProfessionalModule,

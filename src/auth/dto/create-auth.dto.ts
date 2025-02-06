@@ -6,6 +6,9 @@ import {
   IsEnum,
   MinLength,
   MaxLength,
+  IsDateString,
+  IsOptional,
+  IsArray,
 } from 'class-validator';
 
 export enum UserRole {
@@ -46,4 +49,21 @@ export class CreateUserAuthDTO {
       'Por favor, informe se você é um paciente ou um profissional da saúde',
   })
   role: UserRole;
+
+  @IsDateString()
+  @IsOptional()
+  birthDate?: Date;
+
+  @IsString()
+  @IsOptional()
+  healthPlan?: string;
+
+  @IsString()
+  @IsOptional()
+  specialization?: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  clinics?: string[];
 }
