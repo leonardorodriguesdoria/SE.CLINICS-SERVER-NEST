@@ -3,13 +3,14 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
-import { CreateUserAuthDTO, UserRole } from './dto/create-auth.dto';
+import { UserRole } from './dto/create-auth.dto';
 import { Repository } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { hashPassword } from 'src/utils/hashPassword';
 import { Patient } from 'src/patient/entities/patient.entity';
 import { Professional } from 'src/professional/entities/professional.entity';
+import { ICreateUser } from 'src/utils/interfaces/create-user.interface';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +24,7 @@ export class AuthService {
   ) {}
 
   //Register User
-  async registerUser(createAuthDto: CreateUserAuthDTO): Promise<User> {
+  async registerUser(createUser: ICreateUser): Promise<User> {
     const {
       name,
       email,
@@ -33,7 +34,7 @@ export class AuthService {
       healthPlan,
       specialization,
       clinics,
-    } = createAuthDto;
+    } = createUser;
 
     let userAlreadyExists = await this.userRepository.findOne({
       where: { email },

@@ -18,7 +18,7 @@ export enum UserRole {
 
 export class CreateUserAuthDTO {
   @IsNotEmpty()
-  @IsString()
+  @IsString({ message: 'Por favor, insira um nome válido' })
   @MinLength(3, { message: 'O nome deve ter pelo menos 3 caracteres' })
   @MaxLength(50, { message: 'O nome deve ter no máximo 50 caracteres' })
   name: string;
@@ -50,15 +50,18 @@ export class CreateUserAuthDTO {
   })
   role: UserRole;
 
-  @IsDateString()
+  @IsDateString(
+    {},
+    { message: 'Por favor insira uma data de nascimento válida' },
+  )
   @IsOptional()
   birthDate?: Date;
 
-  @IsString()
+  @IsString({ message: 'Insira um nome de plano de saúde válido' })
   @IsOptional()
   healthPlan?: string;
 
-  @IsString()
+  @IsString({ message: 'Insira um nome de especialização válido' })
   @IsOptional()
   specialization?: string;
 
