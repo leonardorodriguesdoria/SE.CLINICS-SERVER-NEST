@@ -2,18 +2,23 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { UserRole } from './dto/create-auth.dto';
 import { Repository } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { hashPassword } from 'src/utils/hashPassword';
+import { comparePassword, hashPassword } from 'src/utils/hashPassword';
 import { Patient } from 'src/patient/entities/patient.entity';
 import { Professional } from 'src/professional/entities/professional.entity';
 import { ICreateUser } from 'src/utils/interfaces/create-user.interface';
+import { IUserLogin } from 'src/utils/interfaces/login-user.interface';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
+  private issuer = 'login';
+  private audience = 'patients';
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -21,6 +26,7 @@ export class AuthService {
     private readonly patientRepository: Repository<Patient>,
     @InjectRepository(Professional)
     private readonly professionalRepository: Repository<Professional>,
+    private readonly jwtService: JwtService,
   ) {}
 
   //Register User
@@ -87,5 +93,54 @@ export class AuthService {
       await this.professionalRepository.save(professional);
     }
     return user;
+  }
+
+  async createToken(user: User) {
+    return {
+      access_token: this.jwtService.sign(
+        {
+          name: user.name,
+          email: user.email,
+        },
+        {
+          expiresIn: '3 days',
+          subject: String(user.id),
+          issuer: this.issuer,
+          audience: this.audience,
+        },
+      ),
+    };
+  }
+
+  async userLogin(body: IUserLogin) {
+    const { email, password } = body;
+
+    let user = await this.userRepository.findOne({
+      where: {
+        email: email,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Email e/ou senhas inválidos');
+    }
+
+    const isPasswordValid = await comparePassword(password, user.password);
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Email e/ou senhas inválidos');
+    }
+
+    const token = this.jwtService.sign(
+      { id: user.id, email: user.email },
+      {
+        expiresIn: '3 days',
+        subject: String(user.id),
+        issuer: this.issuer,
+        audience: this.audience,
+      },
+    );
+
+    return { access_token: token };
   }
 }
