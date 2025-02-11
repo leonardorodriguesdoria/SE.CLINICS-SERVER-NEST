@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { UserRole } from './dto/create-auth.dto';
@@ -30,7 +31,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async createToken(user: User) {
+  createToken(user: User) {
     return {
       access_token: this.jwtService.sign(
         {
@@ -45,6 +46,29 @@ export class AuthService {
         },
       ),
     };
+  }
+
+  checkToken(token: string) {
+    try {
+      const data = this.jwtService.verify(token, {
+        audience: this.audience,
+        issuer: this.issuer,
+      });
+      return data;
+    } catch (error) {
+      throw new BadRequestException(
+        'Ocorreu um erro na autenticação. Tente mais tarde',
+      );
+    }
+  }
+
+  isValidToken(token: string) {
+    try {
+      this.checkToken(token);
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   //Register User
@@ -113,11 +137,15 @@ export class AuthService {
       }
       return this.createToken(user);
     } catch (error) {
-      throw new Error('Erro ao efetuar o cadastro. Tente novamente mais tarde');
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException(
+        'Erro interno no sistema. Por favor tente mais tarde',
+      );
     }
   }
-
-  async checkToken(token: string) {}
 
   async userLogin(body: IUserLogin) {
     try {
@@ -141,7 +169,13 @@ export class AuthService {
 
       return this.createToken(user);
     } catch (error) {
-      throw new Error('Erro ao efetuar o login. Por favor tente mais tarde');
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException(
+        'Erro interno no sistema. Por favor tente mais tarde',
+      );
     }
   }
 
@@ -177,13 +211,17 @@ export class AuthService {
       const updatedUser = result.raw[0];
 
       if (!updatedUser) {
-        throw new Error('Usuário não encontrado ou não atualizado.');
+        throw new UnauthorizedException(
+          'Usuário não encontrado ou não atualizado.',
+        );
       }
 
       return this.createToken(updatedUser);
     } catch (error) {
       console.error('Erro ao resetar senha:', error);
-      throw new Error('Erro ao resetar senha.');
+      throw new InternalServerErrorException(
+        'Erro interno do sistema. Por favor tente novamente mais tarde',
+      );
     }
   }
 }
