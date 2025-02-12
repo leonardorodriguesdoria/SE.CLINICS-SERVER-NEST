@@ -14,11 +14,19 @@ import { Professional } from './professional/entities/professional.entity';
 import { Appointment } from './appointment/entities/appointment.entity';
 import { Clinic } from './clinic/entities/clinic.entity';
 import { User } from './users/entities/user.entity';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 const databasePort = process.env.DB_PORT as unknown as number | undefined;
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([
+      {
+        ttl: 10000,
+        limit: 10,
+      },
+    ]),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
@@ -41,6 +49,12 @@ const databasePort = process.env.DB_PORT as unknown as number | undefined;
     UsersModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}
