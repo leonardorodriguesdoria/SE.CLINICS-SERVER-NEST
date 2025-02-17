@@ -7,6 +7,7 @@ import { Patient } from 'src/patient/entities/patient.entity';
 import { Professional } from 'src/professional/entities/professional.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Clinic } from 'src/clinic/entities/clinic.entity';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([User, Patient, Professional]),
+    TypeOrmModule.forFeature([User, Patient, Professional, Clinic]),
   ],
   controllers: [AuthController],
   providers: [AuthService],

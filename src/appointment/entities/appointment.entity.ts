@@ -5,7 +5,6 @@ import {
   Column,
   Entity,
   JoinColumn,
-  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -16,10 +15,22 @@ export class Appointment {
   id: number;
 
   @Column()
-  date: Date;
+  date: string;
 
-  @Column({ default: 'marcada' })
+  @Column()
+  clinicalExam: string;
+
+  @Column()
+  patientDescription: string;
+
+  @Column({ nullable: true })
+  professionalExplanation: string;
+
+  @Column()
   status: string;
+
+  @Column({ nullable: true })
+  imagePath: string;
 
   @ManyToOne(() => Patient, (patient) => patient.appointments)
   @JoinColumn()

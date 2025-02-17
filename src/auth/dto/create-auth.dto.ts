@@ -9,6 +9,8 @@ import {
   IsDateString,
   IsOptional,
   IsArray,
+  IsNumber,
+  ArrayNotEmpty,
 } from 'class-validator';
 
 export enum UserRole {
@@ -55,7 +57,7 @@ export class CreateUserAuthDTO {
     { message: 'Por favor insira uma data de nascimento válida' },
   )
   @IsOptional()
-  birthDate?: Date;
+  birthDate?: string;
 
   @IsString({ message: 'Insira um nome de plano de saúde válido' })
   @IsOptional()
@@ -66,7 +68,8 @@ export class CreateUserAuthDTO {
   specialization?: string;
 
   @IsArray()
-  @IsString({ each: true })
+  @IsNumber({}, { each: true })
+  @ArrayNotEmpty({ message: 'Tem que inserir as clínicas nas quais trabalha' })
   @IsOptional()
-  clinics?: string[];
+  clinics?: number[];
 }

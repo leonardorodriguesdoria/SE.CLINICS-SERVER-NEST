@@ -23,7 +23,7 @@ const databasePort = process.env.DB_PORT as unknown as number | undefined;
   imports: [
     ThrottlerModule.forRoot([
       {
-        ttl: 10000,
+        ttl: 60000,
         limit: 10,
       },
     ]),

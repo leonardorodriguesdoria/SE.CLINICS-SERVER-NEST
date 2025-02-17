@@ -6,7 +6,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { UserRole } from './dto/create-auth.dto';
-import { Repository } from 'typeorm';
+import { DataSource, In, QueryFailedError, Repository } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { comparePassword, hashPassword } from 'src/utils/hashPassword';
@@ -16,6 +16,7 @@ import { ICreateUser } from 'src/utils/interfaces/create-user.interface';
 import { IUserLogin } from 'src/utils/interfaces/login-user.interface';
 import { JwtService } from '@nestjs/jwt';
 import { IResetUserPassword } from 'src/utils/interfaces/reset-password-user.interface';
+import { Clinic } from 'src/clinic/entities/clinic.entity';
 
 @Injectable()
 export class AuthService {
@@ -24,11 +25,18 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+
     @InjectRepository(Patient)
     private readonly patientRepository: Repository<Patient>,
+
     @InjectRepository(Professional)
     private readonly professionalRepository: Repository<Professional>,
+
     private readonly jwtService: JwtService,
+    @InjectRepository(Clinic)
+    private readonly clinicRepository: Repository<Clinic>,
+
+    private readonly dataSource: DataSource,
   ) {}
 
   createToken(user: User) {
@@ -82,7 +90,7 @@ export class AuthService {
         birthDate,
         healthPlan,
         specialization,
-        clinics,
+        clinicsId,
       } = createUser;
 
       let userAlreadyExists = await this.userRepository.findOne({
@@ -94,55 +102,80 @@ export class AuthService {
           'Já existe um usuário cadastrado com este e-mail.',
         );
       }
-      //Password hash
+
       let hashedPassword = await hashPassword(password);
 
-      let user = this.userRepository.create({
-        name,
-        email,
-        password: hashedPassword,
-        role,
+      return await this.dataSource.transaction(async (manager) => {
+        let user = manager.getRepository(User).create({
+          name,
+          email,
+          password: hashedPassword,
+          role,
+        });
+
+        await manager.getRepository(User).save(user);
+
+        if (role === UserRole.PATIENT) {
+          if (!birthDate || !healthPlan) {
+            throw new BadRequestException(
+              'Data de nascimento e plano de saúde são obrigatórios para pacientes.',
+            );
+          }
+
+          let patient = manager.getRepository(Patient).create({
+            birthDate,
+            healthPlan,
+            user,
+          });
+
+          await manager.getRepository(Patient).save(patient);
+        } else if (role === UserRole.PROFESSIONAL) {
+          if (!specialization || !clinicsId || clinicsId.length === 0) {
+            throw new BadRequestException(
+              'Especialização e clínicas são obrigatórias para profissionais da saúde.',
+            );
+          }
+
+          // Buscando as clínicas associadas pelos IDs
+          const clinics = await manager.getRepository(Clinic).find({
+            where: { id: In(clinicsId) }, // Usando 'In' para buscar todas as clínicas de uma vez
+          });
+
+          if (clinics.length !== clinicsId.length) {
+            throw new BadRequestException(
+              'Algumas clínicas fornecidas não existem.',
+            );
+          }
+
+          let professional = manager.getRepository(Professional).create({
+            specialization,
+            clinics, // Associa as clínicas corretamente
+            user, // Associando o usuário ao profissional
+          });
+
+          await manager.getRepository(Professional).save(professional);
+        }
+
+        return this.createToken(user);
       });
-
-      await this.userRepository.save(user);
-
-      if (role === UserRole.PATIENT) {
-        if (!birthDate || !healthPlan) {
-          throw new BadRequestException(
-            'Campos de data de nascimento e plano de saúde são obrigatórios para pacientes',
-          );
-        }
-
-        let patient = this.patientRepository.create({
-          birthDate,
-          healthPlan,
-          user,
-        });
-
-        await this.patientRepository.save(patient);
-      } else if (role === UserRole.PROFESSIONAL) {
-        if (!specialization || !clinics) {
-          throw new BadRequestException(
-            'Campos de especialização é obrigatório para profissionais da saúde',
-          );
-        }
-
-        let professional = this.professionalRepository.create({
-          specialization,
-          clinics,
-          user,
-        });
-
-        await this.professionalRepository.save(professional);
-      }
-      return this.createToken(user);
     } catch (error) {
-      if (error instanceof UnauthorizedException) {
+      console.error(error);
+
+      if (
+        error instanceof ConflictException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
 
+      if (error instanceof QueryFailedError) {
+        throw new InternalServerErrorException(
+          'Erro ao processar o banco de dados.',
+        );
+      }
+
       throw new InternalServerErrorException(
-        'Erro interno no sistema. Por favor tente mais tarde',
+        'Erro interno no sistema. Por favor tente mais tarde.',
       );
     }
   }

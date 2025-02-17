@@ -1,9 +1,11 @@
 import { Appointment } from 'src/appointment/entities/appointment.entity';
+import { Clinic } from 'src/clinic/entities/clinic.entity';
 import { User } from 'src/users/entities/user.entity';
 import {
   Column,
   Entity,
   JoinColumn,
+  JoinTable,
   ManyToMany,
   OneToMany,
   OneToOne,
@@ -18,8 +20,9 @@ export class Professional {
   @Column()
   specialization: string;
 
-  @Column('json')
-  clinics: string[];
+  @ManyToMany(() => Clinic, (clinic) => clinic.professionals)
+  @JoinTable()
+  clinics: Clinic[];
 
   @OneToOne(() => User)
   @JoinColumn()

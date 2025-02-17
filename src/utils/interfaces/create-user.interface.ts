@@ -1,12 +1,12 @@
 import { UserRole } from 'src/auth/dto/create-auth.dto';
 
 export interface ICreateUser {
-  name: string;
-  email: string;
-  password: string;
-  role: UserRole;
-  birthDate?: Date;
-  healthPlan?: string;
-  specialization?: string;
-  clinics?: string[];
+  readonly name: string;
+  readonly email: string;
+  readonly password: string;
+  readonly role: UserRole;
+  readonly birthDate?: string; // Alterado para string (ISO 8601)
+  readonly healthPlan?: string;
+  readonly specialization?: string;
+  readonly clinicsId?: number[]; // Garantindo imutabilidade
 }
