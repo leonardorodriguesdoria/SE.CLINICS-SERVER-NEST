@@ -1,0 +1,36 @@
+meta {
+  name: appointment_register
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:3000/appointment/register
+  body: multipartForm
+  auth: none
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiR3VpbGhlcm1lIEd1aW1hcmFlcyIsImVtYWlsIjoiZ3VpbGhlcm1lZ3VpbWFyYWVzQGhvdG1haWwuY29tIiwiaWF0IjoxNzM5OTA5NTI3LCJleHAiOjE3NDAxNjg3MjcsImF1ZCI6InVzZXJzIiwiaXNzIjoibG9naW4iLCJzdWIiOiIxNiJ9.0XQxmRB2dBJpkePTfC_GaZjxohkMZvkJm4CUgMgbN4E
+}
+
+body:json {
+  {
+    "date": "2025-08-15T15:30:00",
+    "clinicalExam": "Exame dérmico",
+    "patientDescription": "Estou com uma mancha na pele na mão esquerda",
+    "patient": 3,
+    "professional": 3,
+    "clinic": 3
+  }
+}
+
+body:multipart-form {
+  date: 2023-10-15T14:30:00 @contentType(string)
+  clinicalExam: "Exame dérmico"
+  patientDescription: "Estou com uma mancha na pele"
+  image: @file(C:\Users\leord\Desktop\Finger_Pompholyx_1.tif.jpg)
+  patient: 4
+  professional: 4 @contentType(number)
+  clinic: 4 @contentType(number)
+}

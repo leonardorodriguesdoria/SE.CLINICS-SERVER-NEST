@@ -1,10 +1,19 @@
-import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Req,
+  Res,
+  HttpStatus,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserAuthDTO } from './dto/create-auth.dto';
 import { LoginUserDTO } from './dto/login-auth.dto';
 import { ForgetUserAuthDTO } from './dto/forget-user-auth.dto';
 import { ResetUserAuthDTO } from './dto/reset-user-auth.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -17,9 +26,18 @@ export class AuthController {
   }
 
   @Post('login')
-  async login(@Body() loginUserAuthDTO: LoginUserDTO) {
-    const user = await this.authService.userLogin(loginUserAuthDTO);
-    return { message: 'Login efetuado com sucesso!!!', user };
+  async login(
+    @Body() loginUserAuthDTO: LoginUserDTO,
+    @Res() response: Response,
+  ) {
+    const { access_token } = await this.authService.userLogin(loginUserAuthDTO);
+    response.cookie('access_token', access_token, {
+      httpOnly: true,
+      secure: true,
+    });
+    return response
+      .status(HttpStatus.OK)
+      .json({ message: 'Seja Bem vindo(a)' });
   }
 
   @UseGuards(AuthGuard)

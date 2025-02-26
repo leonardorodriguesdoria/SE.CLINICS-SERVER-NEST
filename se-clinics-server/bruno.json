@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "se-clinics-server",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

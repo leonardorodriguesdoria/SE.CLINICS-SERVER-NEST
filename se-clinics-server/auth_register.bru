@@ -1,0 +1,26 @@
+meta {
+  name: auth_register
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3000/auth/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Guilherme Guimaraes",
+    "email": "guilhermeguimaraes@hotmail.com",
+    "password": "GuilhermeGui45$",
+    "role": "paciente",
+    "birthDate": "2000-08-05",
+    "healthPlan": "Bradesco Saude"
+  }
+}
+
+body:multipart-form {
+  : @file()
+}

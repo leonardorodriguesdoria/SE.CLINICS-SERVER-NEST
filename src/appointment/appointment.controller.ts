@@ -14,9 +14,6 @@ import { AppointmentService } from './appointment.service';
 import { CreateAppointmentDto, StatusExam } from './dto/create-appointment.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
-import { User } from 'src/utils/customdecorators/user-decorator';
 import { AppointmentNotFoundExceptionFilter } from 'src/utils/customExceptions/filters/appointmentNotFoundExceptionFilter';
 
 @Controller('appointment')
@@ -25,9 +22,23 @@ export class AppointmentController {
   constructor(private readonly appointmentService: AppointmentService) {}
 
   @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('image'))
   @Post('register')
-  create(@Body() createAppointmentDto: CreateAppointmentDto) {
-    return this.appointmentService.createNewAppointment(createAppointmentDto);
+  create(
+    @Body() createAppointmentDto: CreateAppointmentDto,
+    @UploadedFile() image: Express.Multer.File,
+  ) {
+    if (image) {
+      createAppointmentDto.imagePath = image.path;
+    }
+
+    const solicitedAppointment =
+      this.appointmentService.createNewAppointment(createAppointmentDto);
+
+    return {
+      message: 'Consulta solicitada com sucesso!!!',
+      solicitedAppointment,
+    };
   }
 
   @UseGuards(AuthGuard)
@@ -68,23 +79,5 @@ export class AppointmentController {
       message: 'Consulta marcada como realizada!!!',
       markAppointmentAsDone,
     };
-  }
-
-  @UseInterceptors(FileInterceptor('file'))
-  @UseGuards(AuthGuard)
-  @Post('photo')
-  async uploadPhoto(@User() user, @UploadedFile() photo: Express.Multer.File) {
-    const uploadResult = await writeFile(
-      join(
-        __dirname,
-        '..',
-        '..',
-        'storage',
-        'symptoms_photos',
-        `photo-${user.id}.png`,
-      ),
-      photo.buffer,
-    );
-    return { uploadResult };
   }
 }

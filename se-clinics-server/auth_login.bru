@@ -1,0 +1,22 @@
+meta {
+  name: auth_login
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:3000/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiR3VpbGhlcm1lIEd1aW1hcmFlcyIsImVtYWlsIjoiZ3VpbGhlcm1lZ3VpbWFyYWVzQGhvdG1haWwuY29tIiwiaWF0IjoxNzM5OTA5NTI3LCJleHAiOjE3NDAxNjg3MjcsImF1ZCI6InVzZXJzIiwiaXNzIjoibG9naW4iLCJzdWIiOiIxNiJ9.0XQxmRB2dBJpkePTfC_GaZjxohkMZvkJm4CUgMgbN4E
+}
+
+body:json {
+  {
+    "email": "guilhermeguimaraes@hotmail.com",
+    "password": "GuilhermeGui45$"
+  }
+}
