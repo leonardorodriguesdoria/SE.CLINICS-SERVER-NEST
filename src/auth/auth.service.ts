@@ -156,7 +156,7 @@ export class AuthService {
           await manager.getRepository(Professional).save(professional);
         }
 
-        return this.createToken(user);
+        return user;
       });
     } catch (error) {
       console.error(error);
