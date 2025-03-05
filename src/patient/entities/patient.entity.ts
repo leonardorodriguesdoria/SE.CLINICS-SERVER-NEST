@@ -4,8 +4,8 @@ import {
   Column,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -20,7 +20,7 @@ export class Patient {
   @Column()
   healthPlan: string;
 
-  @OneToOne(() => User)
+  @ManyToOne(() => User, (user) => user.patients)
   @JoinColumn()
   user: User;
 

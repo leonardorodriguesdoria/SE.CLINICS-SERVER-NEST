@@ -32,7 +32,6 @@ export class AuthController {
   ) {
     const { access_token } = await this.authService.userLogin(loginUserAuthDTO);
     response.cookie('access_token', access_token, {
-      httpOnly: true,
       secure: true,
     });
     return response
